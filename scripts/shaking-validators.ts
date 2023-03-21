@@ -1,8 +1,8 @@
-import { Address, Client, Client as RpcClient, Transaction, InactiveValidatorTxParams } from "nimiq-rpc-client-ts"
+import { Address, Client, Client as RpcClient, Transaction, InactiveValidatorTxParams, ReactivateValidatorTxParams } from "nimiq-rpc-client-ts"
 import * as dotenv from 'dotenv'
 
 type InstanceKey = {address: Address, address_raw: string, public_key: string, private_key: string}
-type Validator = { signing_keypair: InstanceKey, address: InstanceKey, reward_address: InstanceKey }
+type Validator = { signing_keypair: InstanceKey, address: InstanceKey, reward_address: InstanceKey, active: boolean }
 
 function envs() {
     dotenv.config()
@@ -56,14 +56,15 @@ async function registerValidators(client: Client): Promise<Validator[]> {
             return {
                 signing_keypair: v,
                 address: keys[i + 1],
-                reward_address: keys[i + 2]
+                reward_address: keys[i + 2],
+                active: true
             }
         }
-    }).filter(v => v !== undefined) as Validator[];
+    }).filter(Boolean) as Validator[];
 }
 
 async function validatorSendInactive({address, private_key}: InstanceKey) {
-    console.group(`✈️  Sending inactive for ${address}...`)
+    console.group(`🛬  Sending inactive for ${address}...`)
 
     console.log(`👂  Subscribing for ${address}...`)
     const { next } = await client.logs.subscribe({addresses: [address]});
@@ -78,6 +79,7 @@ async function validatorSendInactive({address, private_key}: InstanceKey) {
         console.log(`\t😮  Transaction data for ${address}`)
         console.log(txData);
         console.log('\n\n\n')
+        console.groupEnd()
     })
 
     const params: InactiveValidatorTxParams = {
@@ -91,18 +93,66 @@ async function validatorSendInactive({address, private_key}: InstanceKey) {
     console.log(`😟  Sending inactive tx for ${address}...`)
     const tx = await client.validator.action.inactive.send(params).catch(e => console.error(e))
     console.log(tx);
+}
 
-    console.groupEnd()
+async function validatorSendReactive({ address, private_key }: InstanceKey) {
+    console.group(`🛫  Sending active for ${address}...`)
+    console.log(`👂  Subscribing for ${address}...`)
+    const { next } = await client.logs.subscribe({addresses: [address]});
+    next(async (data) => {
+        console.log(`😯  Got log for ${address}`)
+        if(data.transactions.length === 0) {
+            console.log('\t😔 but no transactions found. Ignoring...')
+            return
+        }
+    
+        const txData = (await client.transaction.by({ hash: data.transactions[0].hash }));
+        console.log(`\t😮  Transaction data for ${address}`)
+        console.log(txData);
+        console.log('\n\n\n')
+        console.groupEnd()
+    })
+
+    const params: ReactivateValidatorTxParams = {
+        fee: 0,
+        senderWallet: address,
+        signingSecretKey: private_key,
+        validator: address,
+        relativeValidityStartHeight: 4
+    }
+    
+    console.log(`😟  Sending inactive tx for ${address}...`)
+    const tx = await client.validator.action.reactivate.send(params).catch(e => console.error(e))
+    console.log(tx);
 }
 
 let client: Client
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+let MONKEY_COUNT = 20;
+
+async function chaosMonkey(validators: Validator[]) {
+    console.log(`🐒  Starting chaos monkey...`)
+
+    const randomValidator = validators[Math.floor(Math.random() * validators.length)];
+
+    if(randomValidator.active) {
+        validatorSendInactive(randomValidator.signing_keypair);
+    } else {
+        validatorSendReactive(randomValidator.signing_keypair);
+    }
+
+    if(MONKEY_COUNT-- === 0) return;
+
+    const randomTime = Math.floor(Math.random() * 55) + 5;
+    console.log(`🐒  Sleeping for ${randomTime} seconds...`)
+    setTimeout(() => chaosMonkey(validators), randomTime * 1000);
+}
 
 async function main(){ 
     client = new Client(new URL("http://localhost:10300"));
     const validators = await registerValidators(client);
-
-    const randomValidator = validators[Math.floor(Math.random() * validators.length)];
-    await validatorSendInactive(randomValidator.signing_keypair);
+    chaosMonkey(validators);
 }
 
 main()
