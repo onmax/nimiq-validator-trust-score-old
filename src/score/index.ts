@@ -20,13 +20,13 @@ async function getGenesisTimestamp(rpc: RpcClient): Promise<Option<Date>> {
 
 export async function getScore(rpc: RpcClient, { address, genesis }: Validator, events: Event[]): Promise<Result<string, Score>> {
     const creationEvent = events.find(({ event }) => event === "create-validator");
-    if (!genesis && !creationEvent) return Result.Err<string, Score>("Could not find creation event");
+    if (!genesis && !creationEvent) return Result.Err("Could not find creation event");
     if (genesis && creationEvent) {
         console.warn(`Found creation event for genesis validator ${address}. Ignoring the fact that in the database it is marked as genesis in the database`);
     }
     if (genesis && !creationEvent) {
         const timestamp = await getGenesisTimestamp(rpc);
-        if (timestamp.isNone()) return Result.Err<string, Score>("Could not find genesis timestamp");
+        if (timestamp.isNone()) return Result.Err("Could not find genesis timestamp");
 
         events.push({
             event: "create-validator",
@@ -40,16 +40,16 @@ export async function getScore(rpc: RpcClient, { address, genesis }: Validator, 
     }
 
     const S = await getSize(rpc, address as Address);
-    if (S.isErr()) return Result.Err<string, Score>(`Error computing parameter S. ${address}: ${S.unwrapErr()}`);
+    if (S.isErr()) return Result.Err(`Error computing parameter S. ${address}: ${S.unwrapErr()}`);
 
     const A = await getAge(events);
-    if (A.isErr()) return Result.Err<string, Score>(`Error computing parameter A. ${address}: ${A.unwrapErr()}`);
+    if (A.isErr()) return Result.Err(`Error computing parameter A. ${address}: ${A.unwrapErr()}`);
 
     const U = await getUptime(rpc, events);
-    if (U.isErr()) return Result.Err<string, Score>(`Error computing parameter U. ${address}: ${U.unwrapErr()}`);
+    if (U.isErr()) return Result.Err(`Error computing parameter U. ${address}: ${U.unwrapErr()}`);
 
     const T = S.unwrap() * A.unwrap() * U.unwrap();
-    return Result.Ok<string, Score>({
+    return Result.Ok({
         score: T,
         score_size: S.unwrap(),
         score_age: A.unwrap(),

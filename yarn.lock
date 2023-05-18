@@ -758,10 +758,10 @@ fsevents@~2.3.2:
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.2.tgz#8a526f78b8fdf4623b709e0b975c52c24c02fd1a"
   integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
 
-ftld@^0.36.2:
-  version "0.36.2"
-  resolved "https://registry.yarnpkg.com/ftld/-/ftld-0.36.2.tgz#1c138081dc30ec02f61668d192473b40217fb2a6"
-  integrity sha512-D7yTmT/JcDyiebjKzo0Mds+8DWFLtROlls3wl15kvoH4v/zj/VkTTxhj3W4gVM0VwKhROdR2kWydIarNsj4tfA==
+ftld@^0.56.0:
+  version "0.56.0"
+  resolved "https://registry.yarnpkg.com/ftld/-/ftld-0.56.0.tgz#2f30730de6952d3e07039e0083abc24fbc499d74"
+  integrity sha512-z25v02qO/g1Du6n/EANsuaumcLAogQX2yJYws/z2ISDgE4fNxJtyiQHGMqxaekylWhRnh5QHjNFZcPeiwT8w8g==
 
 function-bind@^1.1.1:
   version "1.1.1"

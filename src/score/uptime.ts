@@ -23,7 +23,7 @@ const OFFLINE_EVENTS: EventName[] = ["deactivate-validator", "retire-validator"]
 
 async function getActivity(rpc: RpcClient, events: Event[]): Promise<Result<string, ValidatorActivity>> {
     const sortedEvents = events.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-    if (sortedEvents.findIndex(({ event }) => event === "create-validator") !== 0) return Result.Err<string, ValidatorActivity>("First event must be the creation of the validator");
+    if (sortedEvents.findIndex(({ event }) => event === "create-validator") !== 0) return Result.Err("First event must be the creation of the validator");
 
     const activity: ValidatorActivity = [];
     let validatorOnline: boolean = true;
@@ -33,25 +33,25 @@ async function getActivity(rpc: RpcClient, events: Event[]): Promise<Result<stri
         if (!EVENTS_TO_CHECK.includes(event.event)) continue;
 
         const epoch = await getEpochByTxEvent(rpc, event);
-        if (epoch.isErr()) return Result.Err<string, ValidatorActivity>(epoch.unwrapErr());
+        if (epoch.isErr()) return Result.Err(epoch.unwrapErr());
 
         activity.push(epoch.unwrap());
 
         validatorOnline = !validatorOnline;
     }
 
-    return Result.Ok<string, ValidatorActivity>(activity);
+    return Result.Ok(activity);
 }
 
 async function getEpochByTxEvent(client: RpcClient, event: Event): Promise<Result<string, EpochIndex>> {
-    if (event.genesis) return Result.Ok<string, EpochIndex>(0);
+    if (event.genesis) return Result.Ok(0);
 
     const result = await client.transaction.getByHash(event.hash);
-    if (result.error) return Result.Err<string, EpochIndex>(`${result.context.body.method}: ${result.error.message}`);
+    if (result.error) return Result.Err(`${result.context.body.method}: ${result.error.message}`);
 
     const epoch = await client.epoch.at(result.data!.blockNumber);
-    if (epoch.error) return Result.Err<string, EpochIndex>(`${epoch.context.body.method}: ${epoch.error.message}`);
-    return Result.Ok<string, EpochIndex>(epoch.data!);
+    if (epoch.error) return Result.Err(`${epoch.context.body.method}: ${epoch.error.message}`);
+    return Result.Ok(epoch.data!);
 }
 
 export async function getUptime(rpc: RpcClient, events: Event[]): Promise<Result<string, number>> {
@@ -60,10 +60,10 @@ export async function getUptime(rpc: RpcClient, events: Event[]): Promise<Result
     //
 
     const creationEvent = events.find(({ event }) => event === "create-validator");
-    if (!creationEvent) return Result.Err<string, number>("Could not find creation event");
+    if (!creationEvent) return Result.Err("Could not find creation event");
 
     const currentEpoch = await rpc.epoch.current();
-    if (currentEpoch.error) return Result.Err<string, number>(`${currentEpoch.context.body.method}: ${currentEpoch.error.message}`);
+    if (currentEpoch.error) return Result.Err(`${currentEpoch.context.body.method}: ${currentEpoch.error.message}`);
 
     const now = new Date();
     const creationDate = new Date(creationEvent.timestamp);
@@ -75,7 +75,7 @@ export async function getUptime(rpc: RpcClient, events: Event[]): Promise<Result
             [start, end] = [0, currentEpoch.data!]
         } else {
             const epoch = await getEpochByTxEvent(rpc, creationEvent);
-            if (epoch.isErr()) return Result.Err<string, number>(epoch.unwrapErr());
+            if (epoch.isErr()) return Result.Err(epoch.unwrapErr());
             [start, end] = [epoch.unwrap(), currentEpoch.data!]
         }
     } else {
@@ -91,7 +91,7 @@ export async function getUptime(rpc: RpcClient, events: Event[]): Promise<Result
     // 2. Now, we need to compute the score.
     //
     const activity = await getActivity(rpc, events);
-    if (activity.isErr()) return Result.Err<string, number>(activity.unwrapErr());
+    if (activity.isErr()) return Result.Err(activity.unwrapErr());
 
     let numerator = 0;
     let denominator = 0;
@@ -105,5 +105,5 @@ export async function getUptime(rpc: RpcClient, events: Event[]): Promise<Result
         denominator += division;
     }
 
-    return Result.Ok<string, number>(numerator / denominator);
+    return Result.Ok(numerator / denominator);
 }

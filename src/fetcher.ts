@@ -25,7 +25,7 @@ export class EventsFetcher {
 
     async insertOldEvents(): Promise<Result<string, boolean>> {
         const trackedValidators = await this.db.getTrackedValidators()
-        if (trackedValidators.isErr()) return Result.Err<string, boolean>(trackedValidators.unwrapErr())
+        if (trackedValidators.isErr()) return Result.Err(trackedValidators.unwrapErr())
 
 
         await Promise.allSettled(trackedValidators.unwrap().map(async (validator) => {
@@ -39,7 +39,7 @@ export class EventsFetcher {
             await this.db.insertScore(validator.address as Address, score.unwrap())
         }))
 
-        return Result.Ok<string, boolean>(true)
+        return Result.Ok(true)
     }
 
     /**
@@ -86,9 +86,9 @@ export class EventsFetcher {
     private async insertEventToDb(validator: Validator, tx: Transaction): Promise<Result<string, Event>> {
         const fromStakingContract = tx.from === RpcClient.policy.stakingContractAddress
         const eventName = this.getTxEvent(fromStakingContract ? tx.proof : tx.data)
-        if (eventName.isNone()) return Result.Err<string, Event>(`Unable to find event for transaction ${tx.hash}`)
+        if (eventName.isNone()) return Result.Err(`Unable to find event for transaction ${tx.hash}`)
         const eventEntity = await this.db.getEventByName(eventName.unwrap())
-        if (eventEntity.isErr()) return Result.Err<string, Event>(eventEntity.unwrapErr())
+        if (eventEntity.isErr()) return Result.Err(eventEntity.unwrapErr())
         const event: Event = {
             event: eventName.unwrap(),
             event_id: eventEntity.unwrap().id,
@@ -98,7 +98,7 @@ export class EventsFetcher {
             timestamp: new Date(tx.timestamp).toISOString()
         }
         await this.db.insertValidatorEvent(event)
-        return Result.Ok<string, Event>(event)
+        return Result.Ok(event)
     }
 
     async closeStream() {
