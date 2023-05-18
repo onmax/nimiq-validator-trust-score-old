@@ -5,3 +5,10 @@ This repository contains the code for the Nimiq Validator Trust Score (VTS) proj
 ## What is the VTS?
 
 It is not BTS, sorry. Meanwhile, you can learn more [here](https://www.youtube.com/watch?v=djTHvlIWJGs).
+
+## TODO
+
+- Add error tracker in a database
+
+
+- 
