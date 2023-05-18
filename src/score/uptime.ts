@@ -54,7 +54,7 @@ async function getEpochByTxEvent(client: RpcClient, event: Event): Promise<Resul
     return Result.Ok<string, EpochIndex>(epoch.data!);
 }
 
-export async function getU(rpc: RpcClient, events: Event[]): Promise<Result<string, number>> {
+export async function getUptime(rpc: RpcClient, events: Event[]): Promise<Result<string, number>> {
     //
     // 1. We need to find the range of epochs we want to consider for the score.
     //

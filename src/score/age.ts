@@ -3,7 +3,7 @@ import { Event } from "../types";
 
 const H = 21;
 
-export async function getA(events: Event[]): Promise<Result<string, number>> {
+export async function getAge(events: Event[]): Promise<Result<string, number>> {
     const creationEvent = events.find(({ event }) => event === "create-validator");
     if (!creationEvent) return Result.Err<string, number>("Could not find creation event");
 

@@ -2,9 +2,9 @@ import { Option, Result } from "ftld";
 import RpcClient, { Address } from "nimiq-rpc-client-ts";
 import { Validator } from "../database/client";
 import { Event, Score } from "../types";
-import { getA } from "./age";
-import { getS } from "./size";
-import { getU } from "./uptime";
+import { getAge } from "./age";
+import { getSize } from "./size";
+import { getUptime } from "./uptime";
 
 let genesisTimestamp: Date;
 async function getGenesisTimestamp(rpc: RpcClient): Promise<Option<Date>> {
@@ -39,13 +39,13 @@ export async function getScore(rpc: RpcClient, { address, genesis }: Validator, 
         });
     }
 
-    const S = await getS(rpc, address as Address);
+    const S = await getSize(rpc, address as Address);
     if (S.isErr()) return Result.Err<string, Score>(`Error computing parameter S. ${address}: ${S.unwrapErr()}`);
 
-    const A = await getA(events);
+    const A = await getAge(events);
     if (A.isErr()) return Result.Err<string, Score>(`Error computing parameter A. ${address}: ${A.unwrapErr()}`);
 
-    const U = await getU(rpc, events);
+    const U = await getUptime(rpc, events);
     if (U.isErr()) return Result.Err<string, Score>(`Error computing parameter U. ${address}: ${U.unwrapErr()}`);
 
     const T = S.unwrap() * A.unwrap() * U.unwrap();

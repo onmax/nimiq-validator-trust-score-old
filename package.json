@@ -22,10 +22,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.21.0",
-    "albatross-util-wasm": "../albatross-ts-wrapper/pkg/albatross-util-wasm-0.1.5.tgz",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "ftld": "^0.36.2",
-    "nimiq-rpc-client-ts": "link:../rpc-client"
+    "ftld": "^0.56.0",
+    "albatross-util-wasm": "0.1.5",
+    "nimiq-rpc-client-ts": "0.1.2"
   }
 }

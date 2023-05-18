@@ -4,7 +4,7 @@ import RpcClient, { Address } from "nimiq-rpc-client-ts";
 const THRESHOLD = 0.25;
 const STEPNESS = 4
 
-export async function getS(rpc: RpcClient, validator: Address): Promise<Result<string, number>> {
+export async function getSize(rpc: RpcClient, validator: Address): Promise<Result<string, number>> {
     const { data, error } = await rpc.validator.activeList()
     if (error) return Result.Err<string, number>(error.message);
 
